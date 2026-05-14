@@ -6,7 +6,7 @@ Github : https://github.com/Kr0wZ
 𝕏 : https://x.com/ZworKrowZ
 """
 
-from lib.Requests import Request
+from lib.requests import Request
 from lib.colors import *
 from datetime import datetime
 import json
