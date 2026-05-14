@@ -1,5 +1,5 @@
 from lib.colors import *
-from lib.Requests import *
+from lib.requests import *
 
 async def adobe(target: str):
     data = {
