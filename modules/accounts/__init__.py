@@ -1,7 +1,6 @@
 from modules.accounts.adobe import adobe 
 from modules.accounts.bandlab import bandlab
 from modules.accounts.chess import chess
-from modules.accounts.deezer import deezer
 from modules.accounts.duolingo import duolingo
 from modules.accounts.flickr import flickr
 from modules.accounts.github import github
