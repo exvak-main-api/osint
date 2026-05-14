@@ -1,5 +1,5 @@
 import json
-from .Requests import Request
+from .requests import request
 from .colors import *
 
 class Version_Checker:
@@ -13,7 +13,7 @@ class Version_Checker:
         print(f"[ {RED}{name} version{WHITE} ]")
 
         r = await Request("https://raw.githubusercontent.com/exvak-main-api/osint/refs/heads/main/config.json").get()
-
+        
         conf = json.loads(r.text)
 
         current_version = conf['version']['number']
