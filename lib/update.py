@@ -1,5 +1,5 @@
 import json
-from .requests import request
+from .requests import Request
 from .colors import *
 
 class Version_Checker:
