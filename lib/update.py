@@ -12,7 +12,7 @@ class Version_Checker:
 
         print(f"[ {RED}{name} version{WHITE} ]")
 
-        r = await Request("awaitupdate.").get()
+        r = await Request("https://raw.githubusercontent.com/exvak-main-api/osint/refs/heads/main/config.json").get()
 
         conf = json.loads(r.text)
 
