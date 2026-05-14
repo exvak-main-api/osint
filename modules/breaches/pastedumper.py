@@ -1,6 +1,6 @@
 import random
 from bs4 import BeautifulSoup
-from lib.Requests import Request
+from lib.requests import Request
 from lib.colors import *
 
 class Pastebin_Dumper:
