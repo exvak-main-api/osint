@@ -10,7 +10,12 @@ async def picsart(target: str):
 
     r = await Request("https://api.picsart.com/users/email/existence", params=params).get()
 
-    if r.json()['status'] == 'success':
+    try:
+    data = r.json()
+    if data.get('status') == 'success':
+        ...
+except Exception:
+    return
         
         if r.json()['response']:
             print(f"{GREEN}>{WHITE} Picsart")
