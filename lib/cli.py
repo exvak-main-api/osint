@@ -1,67 +1,78 @@
-import argparse
-import re
-from .colors import *
-from .update import Version_Checker
-from .emails_gen import Email_Gen
-from modules import *   
-
-
 async def parser():
     await Version_Checker.checker()
 
-    parser = argparse.ArgumentParser()
+    print(f"""
+{GREEN}
+=====================================
+        EXVAK OSINT PANEL
+=====================================
+{WHITE}
+""")
 
-    parser.add_argument(
-        "email",
-        nargs="?",
-        type=str,
-        default=None,
-        help="Search informations on email (breaches, pastes, accounts ...)"
-    )
+    print(f"{YELLOW}[1]{WHITE} Email OSINT Search")
+    print(f"{YELLOW}[0]{WHITE} Exit\n")
 
-    args = parser.parse_args()
+    choice = input(f"{YELLOW}Select option > {WHITE}").strip()
 
-    if args.email:
-        target = args.email
+    if choice == "0":
+        print(f"{RED}Exiting...{WHITE}")
+        return
 
-        EMAIL_REGEX = r'[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}'
+    if choice != "1":
+        print(f"{RED}Invalid option{WHITE}")
+        return
 
-        if re.match(EMAIL_REGEX, target):
+    target = input(f"\n{YELLOW}Enter email > {WHITE}").strip()
 
-            print(f"\n🔎 Currently researching on the email '{RED}{target}{WHITE}' {YELLOW}...{WHITE}\n")
+    EMAIL_REGEX = r'[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
 
-            print(f"\n{PURPLE}📁 Leak search {YELLOW}...{WHITE}\n")
+    if not re.match(EMAIL_REGEX, target):
+        print(f"{RED}>{WHITE} The target isn't an email.")
+        return
 
-            await Pastebin_Dumper(target).paste_check()
+    print(f"\n🔎 Currently researching on: '{RED}{target}{WHITE}' {YELLOW}...\n")
 
-            print()
+    print(f"\n{PURPLE}📁 Leak search{YELLOW}...\n")
 
-            await Cavalier(target).loader()
+    try:
+        await Pastebin_Dumper(target).paste_check()
+    except:
+        print(f"{RED}Pastebin error{WHITE}")
 
-            print(f"\n\n{GREEN}🎭 Account search {YELLOW}...{WHITE}\n")
+    print()
 
-            await adobe(target)
-            await bandlab(target)
-            await chess(target)
-            await duolingo(target)
-            await flickr(target)
-            await github(target)
-            await gravatar(target)
-            imgur(target)
-            await instagram(target)
-            await pinterest(target)
-            await protonmail(target)
-            pornhub(target)
-            await spotify(target)
-            await strava(target)
-            await x(target)
-            
+    try:
+        await Cavalier(target).loader()
+    except:
+        print(f"{RED}HudsonRock error{WHITE}")
 
-            print(f"\n\n{PINK}📧 Email generation{WHITE}\n")
-            Email_Gen(target).printer()
+    print(f"\n{GREEN}🎭 Account search{YELLOW}...\n")
 
-        else:
-            exit(f"{RED}>{WHITE} The target isn't an email.")
+    modules = [
+        adobe, bandlab, chess, duolingo, flickr,
+        github, gravatar, instagram, pinterest,
+        protonmail, spotify, strava, x
+    ]
 
-    else:
+    for m in modules:
+        try:
+            await m(target)
+        except:
+            print(f"{RED}{m.__name__} failed{WHITE}")
+
+    try:
+        imgur(target)
+    except:
         pass
+
+    try:
+        pornhub(target)
+    except:
+        pass
+
+    print(f"\n{PINK}📧 Email generation{WHITE}\n")
+
+    try:
+        Email_Gen(target).printer()
+    except:
+        print(f"{RED}Email gen error{WHITE}")
