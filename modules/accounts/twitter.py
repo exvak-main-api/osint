@@ -1,5 +1,5 @@
 from lib.colors import *
-from lib.Requests import Request
+from lib.requests import Request
 
 async def x(target: str):
 
