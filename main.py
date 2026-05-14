@@ -11,3 +11,8 @@ async def main():
 
     else:
         exit(f"{RED}>{WHITE} exvak doesn't work with Python version lower at 3.10.")
+
+import asyncio
+
+if __name__ == "__main__":
+    asyncio.run(main())
