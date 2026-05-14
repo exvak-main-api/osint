@@ -81,7 +81,7 @@ ________ ____ |  |__ \_____  \/ ____\\
       \/    \/     \/       \/
 
      ~: 📭 Email OSINT Tool :~
-        => Made by @N0rz3
+        => Made by @exvak
 """
 
     print_banner(banner, start=Color.from_hex("#FE0000"), end=Color.from_hex("#FFFFFF"))
