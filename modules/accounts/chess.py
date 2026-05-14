@@ -1,4 +1,4 @@
-from lib.Requests import Request
+from lib.requests import Request
 from lib.colors import *
 
 async def chess(target: str):
