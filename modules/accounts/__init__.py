@@ -7,7 +7,6 @@ from modules.accounts.github import github
 from modules.accounts.gravatar import gravatar
 from modules.accounts.imgur import imgur
 from modules.accounts.instagram import instagram
-from modules.accounts.picsart import picsart
 from modules.accounts.pinterest import pinterest
 from modules.accounts.pornhub import pornhub
 from modules.accounts.protonmail import protonmail
