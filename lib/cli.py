@@ -49,7 +49,6 @@ async def parser():
             await gravatar(target)
             imgur(target)
             await instagram(target)
-            await picsart(target)
             await pinterest(target)
             await protonmail(target)
             pornhub(target)
