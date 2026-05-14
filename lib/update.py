@@ -3,7 +3,7 @@ from .requests import Request
 from .colors import *
 
 class Version_Checker:
-    async def checker():
+    async def checker(self):
         with open('config.json', "+r", encoding='utf-8') as file:
             reader = json.loads(file.read())
 
