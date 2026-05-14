@@ -1,5 +1,5 @@
 async def parser():
-    await Version_Checker.checker()
+    await Version_Checker().checker()
 
     print(f"""
 {GREEN}
