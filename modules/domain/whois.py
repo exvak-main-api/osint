@@ -1,97 +1,66 @@
+from datetime import datetime, timezone
 import whois
-from datetime import datetime
 
-def _safe_date(value):
+
+def _safe_datetime(value):
+    if not value:
+        return None
+
     if isinstance(value, list):
-        value = value[0] if value else None
-    return value
+        value = value[0]
 
-def _days_between(d1, d2):
-    return (d2 - d1).days
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+    try:
+        if isinstance(value, str):
+            value = value.replace("Z", "+00:00")
+            dt = datetime.fromisoformat(value)
+            return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+    except:
+        return None
+
+    return None
 
 
-def get_whois(domain):
+def domain_whois(domain):
     try:
         w = whois.whois(domain)
-        now = datetime.utcnow()
 
-        creation_date = _safe_date(w.creation_date)
-        expiration_date = _safe_date(w.expiration_date)
+        creation = _safe_datetime(getattr(w, "creation_date", None))
+        expiration = _safe_datetime(getattr(w, "expiration_date", None))
+        updated = _safe_datetime(getattr(w, "updated_date", None))
+
+        now = datetime.now(timezone.utc)
 
         age_days = None
-        if creation_date:
-            age_days = _days_between(creation_date, now)
-
         expires_in_days = None
-        if expiration_date:
-            expires_in_days = _days_between(now, expiration_date)
 
-        raw = str(w).lower()
+        if creation:
+            age_days = (now - creation).days
 
-        privacy = any(x in raw for x in [
-            "redacted", "privacy", "whoisguard", "proxy", "private"
-        ])
+        if expiration:
+            expires_in_days = (expiration - now).days
 
-        ns = w.name_servers
-        if isinstance(ns, str):
-            ns = [ns]
-        if ns is None:
-            ns = []
+        privacy = False
+        raw = str(w.text).lower() if hasattr(w, "text") else ""
 
-        emails = w.emails
-        if isinstance(emails, str):
-            emails = [emails]
-        if emails is None:
-            emails = []
-
-        flags = []
-
-        if privacy:
-            flags.append("privacy_protected")
-
-        if age_days is not None:
-            if age_days < 30:
-                flags.append("very_new_domain")
-            elif age_days < 365:
-                flags.append("new_domain")
-
-        if expires_in_days is not None:
-            if expires_in_days < 30:
-                flags.append("expiring_soon")
-            if expires_in_days < 0:
-                flags.append("expired_domain")
-
-        risk = 0
-
-        if age_days is not None:
-            if age_days < 30:
-                risk += 40
-            elif age_days < 365:
-                risk += 20
-
-        if privacy:
-            risk += 20
-
-        if expires_in_days is not None:
-            if expires_in_days < 30:
-                risk += 20
-            if expires_in_days < 0:
-                risk += 30
-
-        risk = min(risk, 100)
+        if "privacy" in raw or "redacted" in raw or "whoisguard" in raw:
+            privacy = True
 
         return {
             "domain": domain,
-            "registrar": w.registrar,
-            "creation_date": str(creation_date) if creation_date else None,
-            "expiration_date": str(expiration_date) if expiration_date else None,
+            "registrar": getattr(w, "registrar", None),
+            "status": getattr(w, "status", None),
+            "name_servers": getattr(w, "name_servers", None),
+
+            "creation_date": creation.isoformat() if creation else None,
+            "expiration_date": expiration.isoformat() if expiration else None,
+            "updated_date": updated.isoformat() if updated else None,
+
             "age_days": age_days,
             "expires_in_days": expires_in_days,
-            "privacy_protected": privacy,
-            "name_servers": ns,
-            "emails": emails,
-            "flags": flags,
-            "risk_score": risk
+            "privacy_protected": privacy
         }
 
     except Exception as e:
