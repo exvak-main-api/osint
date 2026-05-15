@@ -7,25 +7,37 @@ def correlate(domain, whois_data, dns_data, ip_data):
         score += points
         signals.append(msg)
 
+    def has(val):
+        return bool(val)
+
     age = whois_data.get("age_days")
     if isinstance(age, int):
-        if age < 30:
+        if age < 7:
+            add(60, "Extremely new domain")
+        elif age < 30:
             add(40, "Very new domain")
-        elif age < 365:
+        elif age < 180:
             add(20, "New domain")
 
-    if whois_data.get("privacy_protected") is True:
+    if whois_data.get("privacy_protected"):
         add(20, "WHOIS privacy enabled")
 
     exp = whois_data.get("expires_in_days")
     if isinstance(exp, int):
         if exp < 0:
-            add(30, "Domain expired")
-        elif exp < 30:
-            add(20, "Expiring soon")
+            add(50, "Domain expired")
+        elif exp < 15:
+            add(35, "Domain expiring immediately")
+        elif exp < 60:
+            add(15, "Domain expiring soon")
+
+    registrar = (whois_data.get("registrar") or "").lower()
+    if registrar:
+        if any(x in registrar for x in ["namecheap", "godaddy", "porkbun", "gandi"]):
+            add(5, "Mass-market registrar detected")
 
     if not dns_data.get("has_mx"):
-        add(15, "No MX records")
+        add(20, "No MX records")
 
     if not dns_data.get("has_spf"):
         add(10, "No SPF record")
@@ -37,23 +49,43 @@ def correlate(domain, whois_data, dns_data, ip_data):
     if len(ns) <= 2:
         add(5, "Low nameserver diversity")
 
+    if dns_data.get("mx_count", 0) <= 1 and dns_data.get("has_mx"):
+        add(5, "Low MX redundancy")
+
     org = (ip_data.get("org") or "").lower()
 
-    infra_map = {
-        "cloudflare": "Cloudflare protection detected",
-        "amazon": "AWS hosting detected",
-        "aws": "AWS hosting detected",
-        "google": "Google infrastructure detected"
+    infra = {
+        "cloudflare": "Cloudflare detected",
+        "amazon": "AWS detected",
+        "aws": "AWS detected",
+        "google": "Google Cloud detected",
+        "microsoft": "Azure detected",
+        "digitalocean": "DigitalOcean detected",
+        "ovh": "OVH detected"
     }
 
-    for key, msg in infra_map.items():
-        if key in org:
-            signals.append(msg)
+    for k, v in infra.items():
+        if k in org:
+            signals.append(v)
 
-    if ip_data.get("ip"):
-        signals.append(f"Resolved IP: {ip_data['ip']}")
+    ip = ip_data.get("ip")
+    if ip:
+        signals.append(f"Resolved IP: {ip}")
+
+    if not has(ip):
+        add(10, "No IP resolution")
+
+    score = max(0, min(score, 100))
+
+    if score >= 70:
+        level = "HIGH RISK"
+    elif score >= 40:
+        level = "MEDIUM RISK"
+    else:
+        level = "LOW RISK"
 
     return {
-        "risk_score": max(0, min(score, 100)),
+        "risk_score": score,
+        "risk_level": level,
         "signals": signals
     }
