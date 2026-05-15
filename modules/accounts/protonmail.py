@@ -1,16 +1,6 @@
-"""
-LICENSE => MIT License
-This module comes from => https://github.com/Kr0wZ/NeutrOSINT
-
-Github : https://github.com/Kr0wZ
-𝕏 : https://x.com/ZworKrowZ
-"""
-
 from lib.requests import Request
-from lib.colors import *
 from datetime import datetime
-import json
-import re 
+import re
 
 Session = Request(url=None).Session()
 
@@ -26,10 +16,14 @@ async def generate_auth_cookie():
 
     response = Session.post(url_session, headers=data_session)
 
-    json_dump = json.loads(response.text)
-    access_token = json_dump['AccessToken']
-    refresh_token = json_dump['RefreshToken']
-    uid = json_dump['UID']
+    json_dump = response.json()
+
+    access_token = json_dump.get('AccessToken')
+    refresh_token = json_dump.get('RefreshToken')
+    uid = json_dump.get('UID')
+
+    if not all([access_token, refresh_token, uid]):
+        return None, None
 
     data_cookie = {
         "x-pm-appversion": "web-account@5.0.153.3",
@@ -58,10 +52,24 @@ async def generate_auth_cookie():
 
     return uid, auth_cookie
 
+
 async def protonmail(target: str):
-    if target.split('@')[1] in ['pm.me', 'proton.me', 'protonmail.com', 'protonmail.ch']:
+
+    try:
+        domain = target.split("@")[1]
+
+        if domain not in [
+            "pm.me",
+            "proton.me",
+            "protonmail.com",
+            "protonmail.ch"
+        ]:
+            return False
 
         uid, auth_cookie = await generate_auth_cookie()
+
+        if not uid or not auth_cookie:
+            return False
 
         headers = {
             "x-pm-appversion": "web-account@5.0.153.3",
@@ -75,29 +83,36 @@ async def protonmail(target: str):
             "ParseDomain": "1"
         }
 
-        r = Session.get("https://account.proton.me/api/core/v4/users/available", headers=headers, params=params)
+        r = Session.get(
+            "https://account.proton.me/api/core/v4/users/available",
+            headers=headers,
+            params=params
+        )
 
-        if '"Suggestions":[]' in r.text:
-            print(f"{RED}>{WHITE} Protonmail")
+        text = r.text
 
-        elif '"Code":1000' in r.text:
-            print(f"{RED}>{WHITE} Protonmail")
+        if '"Suggestions":[]' in text:
+            return False
 
-        else:
-            print(f"{GREEN}>{WHITE} Protonmail")
+        if '"Code":1000' in text:
+            return False
 
-            api = f"https://api.protonmail.ch/pks/lookup?op=index&search={target}"
-            r = await Request(api).get()
+        # account exists / found scenario
+        try:
+            api = await Request(
+                f"https://api.protonmail.ch/pks/lookup?op=index&search={target}"
+            ).get()
 
-            match = re.search(r'\b\d{10}\b', r.text)
+            match = re.search(r'\b\d{10}\b', api.text)
 
             if match:
                 timestamp = int(match.group())
-                date_of_creation = datetime.fromtimestamp(timestamp)
+                datetime.fromtimestamp(timestamp)
 
-                print(f"  └──> Created on : {date_of_creation}")
+        except:
+            pass
 
-        Session.close()
+        return True
 
-    else:
-        print(f"{RED}>{WHITE} Protonmail")
+    except:
+        return False
