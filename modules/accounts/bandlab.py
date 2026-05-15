@@ -1,16 +1,23 @@
 from lib.requests import Request
-from lib.colors import *
 
 async def bandlab(target: str):
 
-    r = await Request(f"https://www.bandlab.com/api/v1.3/validation/user", params={'email': target}).get()
+    try:
+        r = await Request(
+            "https://www.bandlab.com/api/v1.3/validation/user",
+            params={'email': target}
+        ).get()
 
-    if r.json()['isValid']:
-        if r.json()['isAvailable'] == False:
-            print(f"{GREEN}>{WHITE} Bandlab")
+        try:
+            data = r.json()
+        except:
+            return False
 
-        else:
-            print(f"{RED}>{WHITE} Bandlab")
+        if data.get('isValid'):
+            if data.get('isAvailable') == False:
+                return True
 
-    else:
-        print(f"{RED}>{WHITE} Bandlab")
+        return False
+
+    except:
+        return False
