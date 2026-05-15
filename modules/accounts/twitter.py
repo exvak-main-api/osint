@@ -1,16 +1,21 @@
-from lib.colors import *
 from lib.requests import Request
 
 async def twitter(target: str):
 
-    r = await Request(f"https://api.twitter.com/i/users/email_available.json?email={target}").get()
-
     try:
-        if r.json()['taken']:
-            print(f"{GREEN}>{WHITE} 𝕏")
+        r = await Request(
+            f"https://api.twitter.com/i/users/email_available.json?email={target}"
+        ).get()
 
-        else:
-            print(f"{RED}>{WHITE} 𝕏")
+        try:
+            data = r.json()
+        except:
+            return False
+
+        if data.get("taken") is True:
+            return True
+
+        return False
 
     except:
-        print(f"{RED}>{WHITE} 𝕏")
+        return False
