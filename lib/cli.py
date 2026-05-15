@@ -22,7 +22,6 @@ async def parser():
 
     print(f"{YELLOW}[1]{WHITE} Email OSINT Search")
     print(f"{YELLOW}[2]{WHITE} Phone OSINT Search")
-    print(f"{YELLOW}[3]{WHITE} Instagram OSINT Search")
     print(f"{YELLOW}[0]{WHITE} Exit\n")
 
     choice = input(f"{YELLOW}Select option > {WHITE}").strip()
