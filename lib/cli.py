@@ -136,30 +136,4 @@ async def parser():
 
         return
 
-    if choice == "3":
-
-        target = input(f"\n{YELLOW}Enter Instagram username > {WHITE}").strip().lstrip("@")
-
-        print(f"\n🔎 Researching: '{RED}{target}{WHITE}' {YELLOW}...\n")
-
-        try:
-            result = await instagram_scraper(target)
-
-            if isinstance(result, tuple):
-                found, data = result
-            else:
-                found, data = bool(result), None
-
-            if found:
-                print("instagram - found")
-                if data:
-                    print(f"   └── {data}")
-            else:
-                print("instagram - not found")
-
-        except:
-            print("instagram - error")
-
-        return
-
     print(f"{RED}Invalid option{WHITE}")
