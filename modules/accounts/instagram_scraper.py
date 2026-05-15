@@ -1,6 +1,7 @@
 from toutatis.core import advanced_lookup
 from dataclasses import dataclass
 
+
 @dataclass
 class IGProfile:
     username: str = ""
@@ -53,29 +54,33 @@ async def instagram_scraper(target: str):
         print(f"  ├── Following: {profile.following}")
         print(f"  └── Verified: {profile.is_verified}")
 
-        obf_email = user.get("obfuscated_email", "")
-        obf_phone = str(user.get("obfuscated_phone", "")).strip()
+        profile.obfuscated_email = user.get("obfuscated_email", "")
+        profile.obfuscated_phone = str(user.get("obfuscated_phone", "")).strip()
 
-        profile.obfuscated_email = obf_email
-        profile.obfuscated_phone = obf_phone
-
-        if obf_email or obf_phone:
-            print(f"  ├── Obfuscated Email: {obf_email}")
-            print(f"  └── Obfuscated Phone: {obf_phone}")
+        if profile.obfuscated_email or profile.obfuscated_phone:
+            print(f"  ├── Obfuscated Email: {profile.obfuscated_email}")
+            print(f"  └── Obfuscated Phone: {profile.obfuscated_phone}")
 
     except Exception:
         print("> Instagram - error")
         return False, {}
 
-    found = bool(
-        profile.username
-        or profile.followers not in ("N/A", None)
-        or profile.obfuscated_email
-        or profile.obfuscated_phone
-    )
+    has_real_data = any([
+        profile.followers not in ("N/A", None),
+        profile.following not in ("N/A", None),
+        profile.full_name.strip() != "",
+        profile.biography.strip() != "",
+        profile.is_verified is True,
+        profile.obfuscated_email,
+        profile.obfuscated_phone
+    ])
+
+    found = bool(user and has_real_data)
 
     data = {
         "username": profile.username,
+        "user_id": profile.user_id,
+        "full_name": profile.full_name,
         "followers": profile.followers,
         "following": profile.following,
         "verified": profile.is_verified,
