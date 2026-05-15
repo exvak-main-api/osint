@@ -1,4 +1,4 @@
-       import re
+import re
 import asyncio
 from lib.colors import *
 from lib.update import Version_Checker
@@ -6,6 +6,11 @@ from lib.emails_gen import Email_Gen
 from modules import *
 from modules.domain import domain_info, ip_asn_info
 from modules.domain.correlation import correlate
+from modules.domain.enrichment import (
+    crt_subdomains,
+    validate_subdomains,
+    reverse_ip_lookup
+)
 
 
 EMAIL_REGEX = re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
@@ -176,6 +181,31 @@ async def parser():
 
             for k, v in ip_data.items():
                 print(f"{k}: {v}")
+
+        print_section("SUBDOMAIN DISCOVERY")
+
+        try:
+            subs = crt_subdomains(target)
+            real_subs = validate_subdomains(subs)
+
+            for s in real_subs:
+                print(f"- {s}")
+
+        except:
+            print(f"{RED}subdomain error{WHITE}")
+
+        print_section("REVERSE IP LOOKUP")
+
+        try:
+            rev = reverse_ip_lookup(target)
+
+            print(f"IP: {rev.get('ip')}")
+
+            for d in rev.get("domains", []):
+                print(f"- {d}")
+
+        except:
+            print(f"{RED}reverse ip error{WHITE}")
 
         if data and ip_data:
 
