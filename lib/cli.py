@@ -1,5 +1,15 @@
+import re
+from lib.colors import *
+from lib.update import Version_Checker
+from lib.emails_gen import Email_Gen
+from modules import *
+
 async def parser():
-    await Version_Checker().checker()
+
+    try:
+        await Version_Checker().checker()
+    except:
+        print(f"{RED}[!] Version check failed{WHITE}")
 
     print(f"""
 {GREEN}
@@ -24,13 +34,13 @@ async def parser():
 
     target = input(f"\n{YELLOW}Enter email > {WHITE}").strip()
 
-    EMAIL_REGEX = r'[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+    EMAIL_REGEX = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
 
     if not re.match(EMAIL_REGEX, target):
         print(f"{RED}>{WHITE} The target isn't an email.")
         return
 
-    print(f"\n🔎 Currently researching on: '{RED}{target}{WHITE}' {YELLOW}...\n")
+    print(f"\n🔎 Researching: '{RED}{target}{WHITE}' {YELLOW}...\n")
 
     print(f"\n{PURPLE}📁 Leak search{YELLOW}...\n")
 
@@ -38,8 +48,6 @@ async def parser():
         await Pastebin_Dumper(target).paste_check()
     except:
         print(f"{RED}Pastebin error{WHITE}")
-
-    print()
 
     try:
         await Cavalier(target).loader()
