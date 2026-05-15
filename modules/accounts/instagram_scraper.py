@@ -1,8 +1,6 @@
-import phonenumbers
 from ensta import Guest
-from toutatis.core import advanced_lookup, getInfo
-from dataclasses import dataclass, field
-from datetime import datetime
+from toutatis.core import advanced_lookup
+from dataclasses import dataclass
 
 
 @dataclass
@@ -59,8 +57,6 @@ async def instagram(target: str):
         print(f"  ├── Following: {profile.following}")
         print(f"  └── Verified: {profile.is_verified}")
 
-        found = True
-
     except:
         print("> Instagram - error")
         return False, {}
@@ -79,6 +75,13 @@ async def instagram(target: str):
     except:
         pass
 
+    found = bool(
+        profile.username
+        or profile.followers != "N/A"
+        or profile.obfuscated_email
+        or profile.obfuscated_phone
+    )
+
     data = {
         "username": profile.username,
         "followers": profile.followers,
@@ -88,4 +91,4 @@ async def instagram(target: str):
         "obfuscated_phone": profile.obfuscated_phone,
     }
 
-    return True, data
+    return found, data
