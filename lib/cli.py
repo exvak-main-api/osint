@@ -1,5 +1,4 @@
 import re
-import asyncio
 from lib.colors import *
 from lib.update import Version_Checker
 from lib.emails_gen import Email_Gen
@@ -30,7 +29,6 @@ async def parser():
         print(f"{RED}Exiting...{WHITE}")
         return
 
-    # ---------------- EMAIL MODE ----------------
     if choice == "1":
 
         target = input(f"\n{YELLOW}Enter email > {WHITE}").strip()
@@ -42,7 +40,6 @@ async def parser():
             return
 
         print(f"\n🔎 Researching: '{RED}{target}{WHITE}' {YELLOW}...\n")
-
         print(f"\n{PURPLE}📁 Leak search{YELLOW}...\n")
 
         try:
@@ -65,7 +62,7 @@ async def parser():
             ("flickr", flickr),
             ("github", github),
             ("gravatar", gravatar),
-            ("instagram", instagram),
+            ("instagram_scraper", instagram_scraper),
             ("pinterest", pinterest),
             ("protonmail", protonmail),
             ("spotify", spotify),
@@ -80,7 +77,7 @@ async def parser():
                 if isinstance(result, tuple):
                     found, data = result
                 else:
-                    found, data = result, None
+                    found, data = bool(result), None
 
                 if found:
                     print(f"{name} - found")
@@ -102,8 +99,6 @@ async def parser():
         except:
             pass
 
-        print(f"\n{PINK}📧 Email generation{WHITE}\n")
-
         try:
             Email_Gen(target).printer()
         except:
@@ -111,7 +106,6 @@ async def parser():
 
         return
 
-    # ---------------- PHONE MODE ----------------
     if choice == "2":
 
         target = input(f"\n{YELLOW}Enter phone number (+country code) > {WHITE}").strip()
@@ -126,7 +120,7 @@ async def parser():
             if isinstance(result, tuple):
                 found, data = result
             else:
-                found, data = result, None
+                found, data = bool(result), None
 
             if found:
                 print("phone - found")
