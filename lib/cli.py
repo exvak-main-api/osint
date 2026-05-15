@@ -6,11 +6,8 @@ from lib.emails_gen import Email_Gen
 from modules import *
 from modules.domain import domain_info, ip_asn_info
 from modules.domain.correlation import correlate
-from modules.domain.enrichment import (
-    crt_subdomains,
-    validate_subdomains,
-    reverse_ip_lookup
-)
+from modules.domain.enrichment import crt_subdomains, validate_subdomains, reverse_ip_lookup
+from modules.username import username_osint
 
 
 EMAIL_REGEX = re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
@@ -38,6 +35,7 @@ async def parser():
     print(f"{YELLOW}[1]{WHITE} Email OSINT Search")
     print(f"{YELLOW}[2]{WHITE} Phone OSINT Search")
     print(f"{YELLOW}[3]{WHITE} Domain OSINT Search")
+    print(f"{YELLOW}[4]{WHITE} Username OSINT Search")
     print(f"{YELLOW}[0]{WHITE} Exit\n")
 
     choice = input(f"{YELLOW}Select option > {WHITE}").strip()
@@ -190,7 +188,6 @@ async def parser():
 
             for s in real_subs:
                 print(f"- {s}")
-
         except:
             print(f"{RED}subdomain error{WHITE}")
 
@@ -203,7 +200,6 @@ async def parser():
 
             for d in rev.get("domains", []):
                 print(f"- {d}")
-
         except:
             print(f"{RED}reverse ip error{WHITE}")
 
@@ -226,6 +222,30 @@ async def parser():
 
             except:
                 print(f"{RED}correlation error{WHITE}")
+
+        return
+
+    if choice == "4":
+
+        target = input(f"\n{YELLOW}Enter username > {WHITE}").strip()
+
+        print(f"\n🔎 Searching username: '{RED}{target}{WHITE}' {YELLOW}...\n")
+
+        try:
+            results = username_osint(target)
+
+            for site, data in results.items():
+
+                found = data.get("found")
+                url = data.get("url")
+
+                print(f"{site} - {'found' if found else 'not found'}")
+
+                if url:
+                    print(f"   └── {url}")
+
+        except:
+            print(f"{RED}username osint error{WHITE}")
 
         return
 
