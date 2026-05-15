@@ -1,7 +1,7 @@
 from lib.colors import *
 from lib.requests import Request
 
-async def x(target: str):
+async def twitter(target: str):
 
     r = await Request(f"https://api.twitter.com/i/users/email_available.json?email={target}").get()
 
