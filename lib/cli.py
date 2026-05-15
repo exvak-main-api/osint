@@ -72,20 +72,18 @@ async def parser():
         ("twitter", twitter)
     ]
 
-    for name, func in modules:
-        try:
-            result = await func(target)
+for name, func in modules:
+    try:
+        result = await func(target)
 
-            if result is True:
-                print(f"{GREEN}{name} - found{WHITE}")
-            elif result is False:
-                print(f"{RED}{name} - not found{WHITE}")
-            else:
-                print(f"{YELLOW}{name} - done{WHITE}")
+        if result is True:
+            print(f"{name} - found")
+        else:
+            print(f"{name} - not found")
 
-        except:
-            print(f"{RED}{name} - error{WHITE}")
-
+    except:
+        print(f"{name} - error")
+        
     try:
         imgur(target)
     except:
