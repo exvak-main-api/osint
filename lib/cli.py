@@ -1,4 +1,5 @@
 import re
+import asyncio
 from lib.colors import *
 from lib.update import Version_Checker
 from lib.emails_gen import Email_Gen
@@ -21,6 +22,7 @@ async def parser():
 
     print(f"{YELLOW}[1]{WHITE} Email OSINT Search")
     print(f"{YELLOW}[2]{WHITE} Phone OSINT Search")
+    print(f"{YELLOW}[3]{WHITE} Instagram OSINT Search")
     print(f"{YELLOW}[0]{WHITE} Exit\n")
 
     choice = input(f"{YELLOW}Select option > {WHITE}").strip()
@@ -131,6 +133,32 @@ async def parser():
 
         except:
             print("phone - error")
+
+        return
+
+    if choice == "3":
+
+        target = input(f"\n{YELLOW}Enter Instagram username > {WHITE}").strip().lstrip("@")
+
+        print(f"\n🔎 Researching: '{RED}{target}{WHITE}' {YELLOW}...\n")
+
+        try:
+            result = await instagram_scraper(target)
+
+            if isinstance(result, tuple):
+                found, data = result
+            else:
+                found, data = bool(result), None
+
+            if found:
+                print("instagram - found")
+                if data:
+                    print(f"   └── {data}")
+            else:
+                print("instagram - not found")
+
+        except:
+            print("instagram - error")
 
         return
 
