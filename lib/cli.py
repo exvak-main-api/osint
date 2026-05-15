@@ -77,8 +77,15 @@ async def parser():
         try:
             result = await func(target)
 
-            if result is True:
+            if isinstance(result, tuple):
+                found, data = result
+            else:
+                found, data = result, None
+
+            if found:
                 print(f"{name} - found")
+                if data:
+                    print(f"   └── {data}")
             else:
                 print(f"{name} - not found")
 
