@@ -1,45 +1,64 @@
 from lib.requests import Request
-from lib.colors import *
 from datetime import datetime
 
 async def github(target: str):
 
-    r = await Request(f"https://api.github.com/search/users?q={target}+in:email").get()
-
     try:
-        if '"total_count": 0' in r.text:
-            print(f"{RED}>{WHITE} Github")
+        r = await Request(
+            f"https://api.github.com/search/users?q={target}+in:email"
+        ).get()
 
-        else:
-            try:
-                data = r.json()['items'][0]
+        try:
+            data = r.json()
+        except:
+            return False
 
-                api = await Request(f"https://api.github.com/users/{data['login']}").get()
+        if data.get("total_count", 0) == 0:
+            return False
 
-                name = api.json()['name']
-                creation = api.json()['created_at']
-                update = api.json()['updated_at']
+        if not data.get("items"):
+            return False
 
-                c_datetime = datetime.fromisoformat(creation.replace("Z", "+00:00"))
+        user = data["items"][0]
+
+        try:
+            api = await Request(
+                f"https://api.github.com/users/{user['login']}"
+            ).get()
+
+            profile = api.json()
+
+            creation = profile.get('created_at')
+            update = profile.get('updated_at')
+
+            if creation:
+                c_datetime = datetime.fromisoformat(
+                    creation.replace("Z", "+00:00")
+                )
                 c_date = c_datetime.strftime("%Y-%m-%d %H:%M:%S")
 
-                u_datetime = datetime.fromisoformat(update.replace("Z", "+00:00"))
+                print(f"  ├── Username : {user['login']}")
+                print(f"  ├── Created : {c_date}")
+
+            if update:
+                u_datetime = datetime.fromisoformat(
+                    update.replace("Z", "+00:00")
+                )
                 u_date = u_datetime.strftime("%Y-%m-%d %H:%M:%S")
 
-                print(f"{GREEN}>{WHITE} Github")
-                print(f"  ├──> Username : {data['login']}")
-                if name != None:
-                    print(f"  ├──> Name : {name}")
-                else: 
-                    pass
-                print(f"  ├──> Id : {data['id']}")
-                print(f"  ├──> Avatar : {data['avatar_url']}")
-                print(f"  ├──> Created on : {c_date}")
-                print(f"  ├──> Update on : {u_date}")
-                print(f"  └──> Account : {CYAN}https://github.com/{data['login']}/{WHITE}")
-                
-            except:
-                print(f"{RED}>{WHITE} Github")
-    
+                print(f"  ├── Updated : {u_date}")
+
+            if profile.get('name'):
+                print(f"  ├── Name : {profile['name']}")
+
+            print(f"  ├── Id : {user['id']}")
+            print(f"  ├── Avatar : {user['avatar_url']}")
+            print(f"  └── Account : https://github.com/{user['login']}/")
+
+        except:
+            pass
+
+        return True
+
     except:
-        pass
+        return False
