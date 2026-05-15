@@ -1,4 +1,4 @@
-from lib.equests import Request
+from lib.requests import Request
 from lib.colors import *
 
 async def instagram(target: str):
