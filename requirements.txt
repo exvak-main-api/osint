@@ -1,5 +1,9 @@
 argparse
 httpx
 requests
-bs4
-asyncio
+beautifulsoup4
+phonenumbers
+colorama
+ensta
+toutatis
+lxml
