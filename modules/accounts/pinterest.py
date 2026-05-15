@@ -1,22 +1,30 @@
 from lib.requests import Request
-from lib.colors import *
 
 async def pinterest(target: str):
 
-    params={
-        "source_url": "/",
-        "data": '{"options": {"email": "'+ target +'"}, "context": {}}'
-    }
-
-    r = await Request("https://www.pinterest.fr/resource/EmailExistsResource/get/", params=params).get()
-
     try:
-        if r.json()["resource_response"]["data"]:
-            print(f"{GREEN}>{WHITE} Pinterest")
+        params = {
+            "source_url": "/",
+            "data": '{"options": {"email": "' + target + '"}, "context": {}}'
+        }
 
-        else:
-            print(f"{RED}>{WHITE} Pinterest")
+        r = await Request(
+            "https://www.pinterest.fr/resource/EmailExistsResource/get/",
+            params=params
+        ).get()
 
-    
+        try:
+            data = r.json()
+        except:
+            return False
+
+        if (
+            data.get("resource_response")
+            and data["resource_response"].get("data")
+        ):
+            return True
+
+        return False
+
     except:
-        print(f"{RED}>{WHITE} Pinterest")
+        return False
