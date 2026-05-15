@@ -17,12 +17,14 @@ from modules.domain import (
 
 from modules.username import username_osint
 from modules.email_patterns import email_intel
+from modules.engine import run_engine
+from modules.subdomains import enrich_subdomains
 
 
 EMAIL_REGEX = re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
 
 
-def header():
+def banner():
     print(f"""{GREEN}
 =====================================
         EXVAK OSINT PANEL
@@ -30,14 +32,22 @@ def header():
 {WHITE}""")
 
 
+def section(title):
+    print(f"\n{YELLOW}==== {title.upper()} ===={WHITE}")
+
+
+def safe(fn, *args):
+    try:
+        return fn(*args)
+    except:
+        return None
+
+
 async def parser():
 
-    try:
-        await Version_Checker().checker()
-    except:
-        pass
+    await safe(Version_Checker().checker)
 
-    header()
+    banner()
 
     print(f"{YELLOW}[1]{WHITE} Email OSINT")
     print(f"{YELLOW}[2]{WHITE} Phone OSINT")
@@ -59,10 +69,11 @@ async def parser():
 
         domain = email.split("@")[-1]
 
-        data = email_intel(domain)
+        section("EMAIL INTELLIGENCE")
 
-        print("\nEMAIL INTEL")
-        print(data)
+        data = safe(email_intel, domain)
+        if data:
+            print(data)
 
         return
 
@@ -70,7 +81,8 @@ async def parser():
 
         phone = input(f"{YELLOW}Phone > {WHITE}").strip()
 
-        print("\nPHONE")
+        section("PHONE")
+
         print(phone)
 
         return
@@ -79,47 +91,69 @@ async def parser():
 
         domain = input(f"{YELLOW}Domain > {WHITE}").strip()
 
-        print(f"\nDOMAIN: {domain}\n")
+        section("DOMAIN INTELLIGENCE")
 
-        whois = domain_whois(domain)
-        dns = dns_lookup(domain)
-        ip = ip_asn_info(domain)
-        web = website_info(domain)
-        enrich = enrichment_report(domain)
+        whois = safe(domain_whois, domain)
+        dns = safe(dns_lookup, domain)
+        ip = safe(ip_asn_info, domain)
+        web = safe(website_info, domain)
+        enrich = safe(enrichment_report, domain)
 
-        corr = correlate(domain, whois, dns, ip)
-        anomaly = detect_anomalies(domain, whois, dns, ip)
+        corr = safe(correlate, domain, whois, dns, ip)
+        anomaly = safe(detect_anomalies, domain, whois, dns, ip)
 
-        subs = crt_subdomains(domain)
-        valid, _ = validate_subdomains(subs)
-        rev = reverse_ip_lookup(domain)
+        subs = safe(crt_subdomains, domain)
+        valid = []
+        if subs:
+            valid, _ = validate_subdomains(subs)
 
-        print("\nWHOIS")
+        graph_subs = enrich_subdomains(valid) if valid else []
+
+        report = safe(
+            run_engine,
+            domain,
+            whois,
+            dns,
+            ip,
+            web,
+            enrich,
+            corr,
+            anomaly,
+            valid
+        )
+
+        section("WHOIS")
         print(whois)
 
-        print("\nDNS")
+        section("DNS")
         print(dns)
 
-        print("\nIP / ASN")
+        section("IP / ASN")
         print(ip)
 
-        print("\nWEBSITE")
+        section("WEBSITE")
         print(web)
 
-        print("\nENRICHMENT")
+        section("ENRICHMENT")
         print(enrich)
 
-        print("\nCORRELATION")
+        section("CORRELATION")
         print(corr)
 
-        print("\nANOMALY")
+        section("ANOMALY")
         print(anomaly)
 
-        print("\nSUBDOMAINS")
+        section("SUBDOMAINS")
         print(valid)
 
-        print("\nREVERSE IP")
-        print(rev)
+        section("REVERSE IP")
+        print(reverse_ip_lookup(domain))
+
+        section("GRAPH")
+        print(report["graph"] if report else None)
+
+        section("SCORE")
+        print(report["score"] if report else None)
 
         return
 
@@ -127,8 +161,9 @@ async def parser():
 
         username = input(f"{YELLOW}Username > {WHITE}").strip()
 
-        print("\nUSERNAME OSINT")
-        print(username_osint(username))
+        section("USERNAME OSINT")
+
+        print(safe(username_osint, username))
 
         return
 
