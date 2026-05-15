@@ -1,18 +1,21 @@
 from lib.requests import Request
-from lib.colors import *
 import re
 
 async def flickr(target: str):
-    count = 0
-    r = await Request("https://www.flickr.com/").get()
 
-    key_pattern = r'[a-f0-9]{32}'
-    keys = re.findall(key_pattern, r.text)
+    try:
+        r = await Request("https://www.flickr.com/").get()
 
-    api_keys = set(keys)
+        key_pattern = r'[a-f0-9]{32}'
+        keys = re.findall(key_pattern, r.text)
 
-    if api_keys:
+        api_keys = set(keys)
+
+        if not api_keys:
+            return False
+
         for key in api_keys:
+
             api = "https://api.flickr.com/services/rest"
 
             params = {
@@ -33,33 +36,21 @@ async def flickr(target: str):
                 'nojsoncallback': 1
             }
 
-            r = await Request(api, params=params).get()
-
             try:
-                data = r.json()['people']['person'][0]
+                r = await Request(api, params=params).get()
+                data = r.json()
 
-                print(f"{GREEN}>{WHITE} Flickr")
-                count += 1
-                print(f"  ├──> Username : {data['username']}")
-
-                name = data['realname']
-                if name != '':
-                    print(f"  ├──> Name : {data['realname']}")
-                else:
-                    pass
-                print(f"  ├──> Id : {data['dbid']}")
-                print(f"  └──> Account : {CYAN}https://www.flickr.com/people/{data['nsid']}/{WHITE}")
-
-                break
+                if (
+                    data.get('people')
+                    and data['people'].get('person')
+                    and len(data['people']['person']) > 0
+                ):
+                    return True
 
             except:
                 continue
 
-    else:
-        pass
+        return False
 
-    if count == 0:
-        print(f"{RED}>{WHITE} Flickr")
-
-    else:
-        pass
+    except:
+        return False
