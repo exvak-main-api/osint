@@ -2,7 +2,21 @@ from lib.requests import Request
 from lib.colors import *
 
 async def instagram(target: str):
-    req = await Request("https://www.instagram.com/accounts/emailsignup/").get()
+    try:
+        r = await Request("https://www.instagram.com/accounts/emailsignup/").get()
+
+        try:
+            data = r.json()
+        except:
+            return False
+
+        if data.get("status") == "success":
+            return True
+
+        return False
+
+    except:
+        return False
 
     try:
         csrf_token = req.cookies.get('csrftoken')
