@@ -59,7 +59,7 @@ async def parser():
     modules = [
         adobe, bandlab, chess, duolingo, flickr,
         github, gravatar, instagram, pinterest,
-        protonmail, spotify, strava, x
+        protonmail, spotify, strava, twitter
     ]
 
     for m in modules:
