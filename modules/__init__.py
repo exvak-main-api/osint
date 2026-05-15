@@ -14,7 +14,6 @@ from modules.accounts.strava import strava
 from modules.accounts.twitter import twitter
 from modules.accounts.imgur import imgur
 from modules.accounts.pornhub import pornhub
-from modules.accounts.instagram_scraper import instagram_scraper
 
 # ---------------- BREACHES ----------------
 from modules.breaches.hudsonrock import Cavalier
