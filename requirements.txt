@@ -4,6 +4,4 @@ requests
 beautifulsoup4
 phonenumbers
 colorama
-ensta
 toutatis
-lxml
