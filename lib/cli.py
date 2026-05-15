@@ -64,7 +64,7 @@ async def parser():
             ("flickr", flickr),
             ("github", github),
             ("gravatar", gravatar),
-            ("instagram_scraper", instagram_scraper),
+            ("instagram", instagram),
             ("pinterest", pinterest),
             ("protonmail", protonmail),
             ("spotify", spotify),
