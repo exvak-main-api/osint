@@ -1,19 +1,22 @@
 import requests
-from lib.colors import *
 
 def imgur(target: str):
 
-    r = requests.post("https://imgur.com/signin/ajax_email_available", data={'email': target})
-
     try:
-        if r.json()['data']['available'] == True:
-            print(f"{RED}>{WHITE} Imgur")
+        r = requests.post(
+            "https://imgur.com/signin/ajax_email_available",
+            data={'email': target}
+        )
 
-        elif r.json()['data']['available'] == False:
-            print(f"{GREEN}>{WHITE} Imgur")
+        try:
+            data = r.json()
+        except:
+            return False
 
-        else:
-            print(f"{RED}>{WHITE} Imgur")
+        if data.get('data', {}).get('available') == False:
+            return True
+
+        return False
 
     except:
-        print(f"{RED}>{WHITE} Imgur")
+        return False
