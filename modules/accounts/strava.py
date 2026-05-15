@@ -1,21 +1,19 @@
 from lib.requests import Request
-from lib.colors import *
 
 async def strava(target: str):
 
-    params = {'email': target}
-
-    req = await Request(f"https://www.strava.com/frontend/athletes/email_unique", params=params).get()
-
     try:
-        if "false" in req.text:
-            print(f"{GREEN}>{WHITE} Strava")
+        req = await Request(
+            "https://www.strava.com/frontend/athletes/email_unique",
+            params={'email': target}
+        ).get()
 
-        elif "true" in req.text:
-            print(f"{RED}>{WHITE} Strava")
+        text = req.text.lower()
 
-        else:
-            print(f"{RED}>{WHITE} Strava")
-            
+        if "false" in text:
+            return True
+
+        return False
+
     except:
-        print(f"{RED}>{WHITE} Strava")
+        return False
