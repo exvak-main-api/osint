@@ -20,5 +20,5 @@ from modules.accounts.pornhub import pornhub
 from modules.breaches.hudsonrock import Cavalier
 from modules.breaches.pastebin import Pastebin_Dumper
 
-# modules/phone/lookup.py
-from modules/phone/lookup import lookup
+# ---------------- PHONE ----------------
+from modules.phone.lookup import lookup
