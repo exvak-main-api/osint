@@ -1,4 +1,4 @@
-from ensta import Guest
+Guest = None
 from toutatis.core import advanced_lookup
 from dataclasses import dataclass
 
@@ -27,8 +27,7 @@ async def instagram_scraper(target: str):
     profile = IGProfile()
 
     try:
-        api = Guest()
-        data = api.profile(target)
+        data = None
 
         if not data or not hasattr(data, "raw") or not data.raw:
             print("> Instagram - not found")
