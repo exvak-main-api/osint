@@ -23,7 +23,7 @@ class IGProfile:
     obfuscated_phone: str = ""
 
 
-async def instagram(target: str):
+async def instagram_scraper(target: str):
     profile = IGProfile()
 
     try:
