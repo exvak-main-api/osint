@@ -16,7 +16,7 @@ from modules.domain import (
 )
 
 from modules.username import username_osint
-from modules.email_patterns import email_intel
+from modules.domain.email_patterns import email_intel
 from modules.engine import run_engine
 from modules.subdomains import enrich_subdomains
 
