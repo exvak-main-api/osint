@@ -4,15 +4,29 @@ from lib.colors import *
 from lib.update import Version_Checker
 from lib.emails_gen import Email_Gen
 from modules import *
-from modules.domain import domain_info
+from modules.domain import domain_info, ip_asn_info
+
+
+EMAIL_REGEX = re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
+
+
+def print_section(title):
+    print(f"\n{GREEN}{title}{WHITE}\n")
+
+
+def safe_call(func, *args, error_msg="error", is_async=False):
+    try:
+        if is_async:
+            return asyncio.run(func(*args))
+        return func(*args)
+    except:
+        print(f"{RED}{error_msg}{WHITE}")
+        return None
 
 
 async def parser():
 
-    try:
-        await Version_Checker().checker()
-    except:
-        print(f"{RED}[!] Version check failed{WHITE}")
+    safe_call(Version_Checker().checker, is_async=True)
 
     print(f"""
 {GREEN}
@@ -33,138 +47,104 @@ async def parser():
         print(f"{RED}Exiting...{WHITE}")
         return
 
+    # ================= EMAIL =================
     if choice == "1":
 
         target = input(f"\n{YELLOW}Enter email > {WHITE}").strip()
 
-        EMAIL_REGEX = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-
-        if not re.match(EMAIL_REGEX, target):
-            print(f"{RED}>{WHITE} The target isn't an email.")
+        if not EMAIL_REGEX.match(target):
+            print(f"{RED}>{WHITE} Invalid email.")
             return
 
         print(f"\n🔎 Researching: '{RED}{target}{WHITE}' {YELLOW}...\n")
-        print(f"\n{PURPLE}📁 Leak search{YELLOW}...\n")
 
-        try:
-            await Pastebin_Dumper(target).paste_check()
-        except:
-            print(f"{RED}Pastebin error{WHITE}")
+        print_section("Leak search")
 
-        try:
-            await Cavalier(target).loader()
-        except:
-            print(f"{RED}HudsonRock error{WHITE}")
+        safe_call(Pastebin_Dumper(target).paste_check, error_msg="Pastebin error", is_async=True)
+        safe_call(Cavalier(target).loader, error_msg="HudsonRock error", is_async=True)
 
-        print(f"\n{GREEN}🎭 Account search{YELLOW}...\n")
+        print_section("Account search")
 
         modules = [
-            ("adobe", adobe),
-            ("bandlab", bandlab),
-            ("chess", chess),
-            ("duolingo", duolingo),
-            ("flickr", flickr),
-            ("github", github),
-            ("gravatar", gravatar),
-            ("instagram", instagram),
-            ("pinterest", pinterest),
-            ("protonmail", protonmail),
-            ("spotify", spotify),
-            ("strava", strava),
-            ("twitter", twitter)
+            ("adobe", adobe), ("bandlab", bandlab), ("chess", chess),
+            ("duolingo", duolingo), ("flickr", flickr), ("github", github),
+            ("gravatar", gravatar), ("instagram", instagram),
+            ("pinterest", pinterest), ("protonmail", protonmail),
+            ("spotify", spotify), ("strava", strava), ("twitter", twitter)
         ]
 
         for name, func in modules:
-            try:
-                result = await func(target)
-
-                if isinstance(result, tuple):
-                    found, data = result
-                else:
-                    found, data = bool(result), None
-
-                if found:
-                    print(f"{name} - found")
-                    if data:
-                        print(f"   └── {data}")
-                else:
-                    print(f"{name} - not found")
-
-            except:
-                print(f"{name} - error")
-
-        try:
-            imgur(target)
-        except:
-            pass
-
-        try:
-            pornhub(target)
-        except:
-            pass
-
-        try:
-            Email_Gen(target).printer()
-        except:
-            print(f"{RED}Email gen error{WHITE}")
-
-        return
-
-    if choice == "2":
-
-        target = input(f"\n{YELLOW}Enter phone number (+country code) > {WHITE}").strip()
-
-        print(f"\n🔎 Researching: '{RED}{target}{WHITE}' {YELLOW}...\n")
-
-        try:
-            from modules.phone.lookup import lookup
-
-            result = await lookup(target)
+            result = safe_call(func, target, error_msg=f"{name} error", is_async=True)
 
             if isinstance(result, tuple):
                 found, data = result
             else:
                 found, data = bool(result), None
 
-            if found:
-                print("phone - found")
-                if data:
-                    print(f"   └── {data}")
-            else:
-                print("phone - not found")
+            print(f"{name} - {'found' if found else 'not found'}")
+            if data:
+                print(f"   └── {data}")
 
-        except:
-            print("phone - error")
+        safe_call(imgur, target)
+        safe_call(pornhub, target)
+        safe_call(lambda: Email_Gen(target).printer())
 
         return
 
+    # ================= PHONE =================
+    if choice == "2":
+
+        target = input(f"\n{YELLOW}Enter phone (+country code) > {WHITE}").strip()
+
+        print(f"\n🔎 Researching: '{RED}{target}{WHITE}' {YELLOW}...\n")
+
+        from modules.phone.lookup import lookup
+
+        result = safe_call(lookup, target, error_msg="phone error", is_async=True)
+
+        if isinstance(result, tuple):
+            found, data = result
+        else:
+            found, data = bool(result), None
+
+        print(f"phone - {'found' if found else 'not found'}")
+        if data:
+            print(f"   └── {data}")
+
+        return
+
+    # ================= DOMAIN =================
     if choice == "3":
 
-        target = input(f"\n{YELLOW}Enter domain (example.com) > {WHITE}").strip()
+        target = input(f"\n{YELLOW}Enter domain > {WHITE}").strip()
 
         if "." not in target:
-            print(f"{RED}>{WHITE} Invalid domain format.")
+            print(f"{RED}>{WHITE} Invalid domain.")
             return
 
-        print(f"\n🔎 Analyzing domain: '{RED}{target}{WHITE}' {YELLOW}...\n")
+        print(f"\n🔎 Analyzing: '{RED}{target}{WHITE}' {YELLOW}...\n")
 
-        try:
-            data = domain_info(target)
+        data = safe_call(domain_info, target, error_msg="domain error")
 
-            print(f"{GREEN}WHOIS{WHITE}")
-            print(data["whois"])
+        if data:
+            print_section("WHOIS")
+            print(data.get("whois"))
 
-            print(f"\n{GREEN}DNS{WHITE}")
-            print(data["dns"])
+            print_section("DNS")
+            print(data.get("dns"))
 
-            print(f"\n{GREEN}EMAIL PATTERNS{WHITE}")
-            print(data["email_patterns"])
+            print_section("EMAIL PATTERNS")
+            print(data.get("email_patterns"))
 
-            print(f"\n{GREEN}WEBSITE TITLE{WHITE}")
-            print(data["title"])
+            print_section("WEBSITE")
+            print(data.get("title"))
 
-        except:
-            print(f"{RED}domain error{WHITE}")
+        ip_data = safe_call(ip_asn_info, target, error_msg="ip/asn error")
+
+        if ip_data:
+            print_section("IP + ASN")
+            for k, v in ip_data.items():
+                print(f"{k}: {v}")
 
         return
 
