@@ -11,7 +11,7 @@ from modules.accounts.pinterest import pinterest
 from modules.accounts.protonmail import protonmail
 from modules.accounts.spotify import spotify
 from modules.accounts.strava import strava
-from modules.accounts.x import x
+from modules.accounts.twitter import twitter
 
 from modules.accounts.imgur import imgur
 from modules.accounts.pornhub import pornhub
