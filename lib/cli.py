@@ -1,20 +1,33 @@
 import re
-import asyncio
 from lib.colors import *
 from lib.update import Version_Checker
-from lib.emails_gen import Email_Gen
-from modules import *
-from modules.domain import domain_info, ip_asn_info
-from modules.domain.correlation import correlate
-from modules.domain.enrichment import crt_subdomains, validate_subdomains, reverse_ip_lookup
+
+from modules.domain import (
+    domain_whois,
+    dns_lookup,
+    ip_asn_info,
+    website_info,
+    enrichment_report,
+    crt_subdomains,
+    validate_subdomains,
+    reverse_ip_lookup,
+    correlate,
+    detect_anomalies
+)
+
 from modules.username import username_osint
+from modules.email_patterns import email_intel
 
 
 EMAIL_REGEX = re.compile(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}')
 
 
-def print_section(title):
-    print(f"\n{GREEN}{title}{WHITE}\n")
+def header():
+    print(f"""{GREEN}
+=====================================
+        EXVAK OSINT PANEL
+=====================================
+{WHITE}""")
 
 
 async def parser():
@@ -22,230 +35,100 @@ async def parser():
     try:
         await Version_Checker().checker()
     except:
-        print(f"{RED}[!] Version check failed{WHITE}")
+        pass
 
-    print(f"""
-{GREEN}
-=====================================
-        EXVAK OSINT PANEL
-=====================================
-{WHITE}
-""")
+    header()
 
-    print(f"{YELLOW}[1]{WHITE} Email OSINT Search")
-    print(f"{YELLOW}[2]{WHITE} Phone OSINT Search")
-    print(f"{YELLOW}[3]{WHITE} Domain OSINT Search")
-    print(f"{YELLOW}[4]{WHITE} Username OSINT Search")
+    print(f"{YELLOW}[1]{WHITE} Email OSINT")
+    print(f"{YELLOW}[2]{WHITE} Phone OSINT")
+    print(f"{YELLOW}[3]{WHITE} Domain OSINT")
+    print(f"{YELLOW}[4]{WHITE} Username OSINT")
     print(f"{YELLOW}[0]{WHITE} Exit\n")
 
-    choice = input(f"{YELLOW}Select option > {WHITE}").strip()
+    choice = input(f"{YELLOW}Select > {WHITE}").strip()
 
     if choice == "0":
-        print(f"{RED}Exiting...{WHITE}")
         return
 
     if choice == "1":
 
-        target = input(f"\n{YELLOW}Enter email > {WHITE}").strip()
+        email = input(f"{YELLOW}Email > {WHITE}").strip()
 
-        if not EMAIL_REGEX.match(target):
-            print(f"{RED}>{WHITE} Invalid email")
+        if not EMAIL_REGEX.match(email):
             return
 
-        print(f"\n🔎 Researching: '{RED}{target}{WHITE}' {YELLOW}...\n")
+        domain = email.split("@")[-1]
 
-        print_section("Leak search")
+        data = email_intel(domain)
 
-        try:
-            await Pastebin_Dumper(target).paste_check()
-        except:
-            print(f"{RED}Pastebin error{WHITE}")
-
-        try:
-            await Cavalier(target).loader()
-        except:
-            print(f"{RED}HudsonRock error{WHITE}")
-
-        print_section("Account search")
-
-        modules = [
-            ("adobe", adobe), ("bandlab", bandlab), ("chess", chess),
-            ("duolingo", duolingo), ("flickr", flickr), ("github", github),
-            ("gravatar", gravatar), ("instagram", instagram),
-            ("pinterest", pinterest), ("protonmail", protonmail),
-            ("spotify", spotify), ("strava", strava), ("twitter", twitter)
-        ]
-
-        for name, func in modules:
-            try:
-                result = await func(target)
-
-                if isinstance(result, tuple):
-                    found, data = result
-                else:
-                    found, data = bool(result), None
-
-                print(f"{name} - {'found' if found else 'not found'}")
-
-                if data:
-                    print(f"   └── {data}")
-
-            except:
-                print(f"{name} - error")
-
-        try:
-            imgur(target)
-        except:
-            pass
-
-        try:
-            pornhub(target)
-        except:
-            pass
-
-        try:
-            Email_Gen(target).printer()
-        except:
-            print(f"{RED}Email gen error{WHITE}")
+        print("\nEMAIL INTEL")
+        print(data)
 
         return
 
     if choice == "2":
 
-        target = input(f"\n{YELLOW}Enter phone (+country code) > {WHITE}").strip()
+        phone = input(f"{YELLOW}Phone > {WHITE}").strip()
 
-        print(f"\n🔎 Researching: '{RED}{target}{WHITE}' {YELLOW}...\n")
-
-        try:
-            from modules.phone.lookup import lookup
-
-            result = await lookup(target)
-
-            if isinstance(result, tuple):
-                found, data = result
-            else:
-                found, data = bool(result), None
-
-            print(f"phone - {'found' if found else 'not found'}")
-
-            if data:
-                print(f"   └── {data}")
-
-        except:
-            print(f"{RED}phone error{WHITE}")
+        print("\nPHONE")
+        print(phone)
 
         return
 
     if choice == "3":
 
-        target = input(f"\n{YELLOW}Enter domain > {WHITE}").strip()
+        domain = input(f"{YELLOW}Domain > {WHITE}").strip()
 
-        if "." not in target:
-            print(f"{RED}>{WHITE} Invalid domain")
-            return
+        print(f"\nDOMAIN: {domain}\n")
 
-        print(f"\n🔎 Analyzing: '{RED}{target}{WHITE}' {YELLOW}...\n")
+        whois = domain_whois(domain)
+        dns = dns_lookup(domain)
+        ip = ip_asn_info(domain)
+        web = website_info(domain)
+        enrich = enrichment_report(domain)
 
-        data = None
-        ip_data = None
+        corr = correlate(domain, whois, dns, ip)
+        anomaly = detect_anomalies(domain, whois, dns, ip)
 
-        try:
-            data = domain_info(target)
-        except:
-            print(f"{RED}domain error{WHITE}")
+        subs = crt_subdomains(domain)
+        valid, _ = validate_subdomains(subs)
+        rev = reverse_ip_lookup(domain)
 
-        try:
-            ip_data = ip_asn_info(target)
-        except:
-            print(f"{RED}ip/asn error{WHITE}")
+        print("\nWHOIS")
+        print(whois)
 
-        if data:
+        print("\nDNS")
+        print(dns)
 
-            print_section("WHOIS")
-            print(data.get("whois"))
+        print("\nIP / ASN")
+        print(ip)
 
-            print_section("DNS")
-            print(data.get("dns"))
+        print("\nWEBSITE")
+        print(web)
 
-            print_section("EMAIL PATTERNS")
-            print(data.get("email_patterns"))
+        print("\nENRICHMENT")
+        print(enrich)
 
-            print_section("WEBSITE")
-            print(data.get("title"))
+        print("\nCORRELATION")
+        print(corr)
 
-        if ip_data:
+        print("\nANOMALY")
+        print(anomaly)
 
-            print_section("IP + ASN")
+        print("\nSUBDOMAINS")
+        print(valid)
 
-            for k, v in ip_data.items():
-                print(f"{k}: {v}")
-
-        print_section("SUBDOMAIN DISCOVERY")
-
-        try:
-            subs = crt_subdomains(target)
-            real_subs = validate_subdomains(subs)
-
-            for s in real_subs:
-                print(f"- {s}")
-        except:
-            print(f"{RED}subdomain error{WHITE}")
-
-        print_section("REVERSE IP LOOKUP")
-
-        try:
-            rev = reverse_ip_lookup(target)
-
-            print(f"IP: {rev.get('ip')}")
-
-            for d in rev.get("domains", []):
-                print(f"- {d}")
-        except:
-            print(f"{RED}reverse ip error{WHITE}")
-
-        if data and ip_data:
-
-            try:
-                corr = correlate(
-                    target,
-                    data.get("whois", {}),
-                    data.get("dns", {}),
-                    ip_data
-                )
-
-                print_section("CORRELATION ENGINE")
-
-                print(f"Risk Score: {corr['risk_score']}/100")
-
-                for s in corr["signals"]:
-                    print(f"- {s}")
-
-            except:
-                print(f"{RED}correlation error{WHITE}")
+        print("\nREVERSE IP")
+        print(rev)
 
         return
 
     if choice == "4":
 
-        target = input(f"\n{YELLOW}Enter username > {WHITE}").strip()
+        username = input(f"{YELLOW}Username > {WHITE}").strip()
 
-        print(f"\n🔎 Searching username: '{RED}{target}{WHITE}' {YELLOW}...\n")
-
-        try:
-            results = username_osint(target)
-
-            for site, data in results.items():
-
-                found = data.get("found")
-                url = data.get("url")
-
-                print(f"{site} - {'found' if found else 'not found'}")
-
-                if url:
-                    print(f"   └── {url}")
-
-        except:
-            print(f"{RED}username osint error{WHITE}")
+        print("\nUSERNAME OSINT")
+        print(username_osint(username))
 
         return
 
