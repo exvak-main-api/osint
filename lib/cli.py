@@ -4,6 +4,8 @@ from lib.colors import *
 from lib.update import Version_Checker
 from lib.emails_gen import Email_Gen
 from modules import *
+from modules.domain import domain_info
+
 
 async def parser():
 
@@ -22,6 +24,7 @@ async def parser():
 
     print(f"{YELLOW}[1]{WHITE} Email OSINT Search")
     print(f"{YELLOW}[2]{WHITE} Phone OSINT Search")
+    print(f"{YELLOW}[3]{WHITE} Domain OSINT Search")
     print(f"{YELLOW}[0]{WHITE} Exit\n")
 
     choice = input(f"{YELLOW}Select option > {WHITE}").strip()
@@ -132,6 +135,36 @@ async def parser():
 
         except:
             print("phone - error")
+
+        return
+
+    if choice == "3":
+
+        target = input(f"\n{YELLOW}Enter domain (example.com) > {WHITE}").strip()
+
+        if "." not in target:
+            print(f"{RED}>{WHITE} Invalid domain format.")
+            return
+
+        print(f"\n🔎 Analyzing domain: '{RED}{target}{WHITE}' {YELLOW}...\n")
+
+        try:
+            data = domain_info(target)
+
+            print(f"{GREEN}WHOIS{WHITE}")
+            print(data["whois"])
+
+            print(f"\n{GREEN}DNS{WHITE}")
+            print(data["dns"])
+
+            print(f"\n{GREEN}EMAIL PATTERNS{WHITE}")
+            print(data["email_patterns"])
+
+            print(f"\n{GREEN}WEBSITE TITLE{WHITE}")
+            print(data["title"])
+
+        except:
+            print(f"{RED}domain error{WHITE}")
 
         return
 
