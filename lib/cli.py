@@ -21,6 +21,7 @@ async def parser():
 """)
 
     print(f"{YELLOW}[1]{WHITE} Email OSINT Search")
+    print(f"{YELLOW}[2]{WHITE} Phone OSINT Search")
     print(f"{YELLOW}[0]{WHITE} Exit\n")
 
     choice = input(f"{YELLOW}Select option > {WHITE}").strip()
@@ -29,53 +30,98 @@ async def parser():
         print(f"{RED}Exiting...{WHITE}")
         return
 
-    if choice != "1":
-        print(f"{RED}Invalid option{WHITE}")
-        return
+    # ---------------- EMAIL MODE ----------------
+    if choice == "1":
 
-    target = input(f"\n{YELLOW}Enter email > {WHITE}").strip()
+        target = input(f"\n{YELLOW}Enter email > {WHITE}").strip()
 
-    EMAIL_REGEX = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+        EMAIL_REGEX = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
 
-    if not re.match(EMAIL_REGEX, target):
-        print(f"{RED}>{WHITE} The target isn't an email.")
-        return
+        if not re.match(EMAIL_REGEX, target):
+            print(f"{RED}>{WHITE} The target isn't an email.")
+            return
 
-    print(f"\n🔎 Researching: '{RED}{target}{WHITE}' {YELLOW}...\n")
+        print(f"\n🔎 Researching: '{RED}{target}{WHITE}' {YELLOW}...\n")
 
-    print(f"\n{PURPLE}📁 Leak search{YELLOW}...\n")
+        print(f"\n{PURPLE}📁 Leak search{YELLOW}...\n")
 
-    try:
-        await Pastebin_Dumper(target).paste_check()
-    except:
-        print(f"{RED}Pastebin error{WHITE}")
-
-    try:
-        await Cavalier(target).loader()
-    except:
-        print(f"{RED}HudsonRock error{WHITE}")
-
-    print(f"\n{GREEN}🎭 Account search{YELLOW}...\n")
-
-    modules = [
-        ("adobe", adobe),
-        ("bandlab", bandlab),
-        ("chess", chess),
-        ("duolingo", duolingo),
-        ("flickr", flickr),
-        ("github", github),
-        ("gravatar", gravatar),
-        ("instagram", instagram),
-        ("pinterest", pinterest),
-        ("protonmail", protonmail),
-        ("spotify", spotify),
-        ("strava", strava),
-        ("twitter", twitter)
-    ]
-
-    for name, func in modules:
         try:
-            result = await func(target)
+            await Pastebin_Dumper(target).paste_check()
+        except:
+            print(f"{RED}Pastebin error{WHITE}")
+
+        try:
+            await Cavalier(target).loader()
+        except:
+            print(f"{RED}HudsonRock error{WHITE}")
+
+        print(f"\n{GREEN}🎭 Account search{YELLOW}...\n")
+
+        modules = [
+            ("adobe", adobe),
+            ("bandlab", bandlab),
+            ("chess", chess),
+            ("duolingo", duolingo),
+            ("flickr", flickr),
+            ("github", github),
+            ("gravatar", gravatar),
+            ("instagram", instagram),
+            ("pinterest", pinterest),
+            ("protonmail", protonmail),
+            ("spotify", spotify),
+            ("strava", strava),
+            ("twitter", twitter)
+        ]
+
+        for name, func in modules:
+            try:
+                result = await func(target)
+
+                if isinstance(result, tuple):
+                    found, data = result
+                else:
+                    found, data = result, None
+
+                if found:
+                    print(f"{name} - found")
+                    if data:
+                        print(f"   └── {data}")
+                else:
+                    print(f"{name} - not found")
+
+            except:
+                print(f"{name} - error")
+
+        try:
+            imgur(target)
+        except:
+            pass
+
+        try:
+            pornhub(target)
+        except:
+            pass
+
+        print(f"\n{PINK}📧 Email generation{WHITE}\n")
+
+        try:
+            Email_Gen(target).printer()
+        except:
+            print(f"{RED}Email gen error{WHITE}")
+
+        return
+
+    # ---------------- PHONE MODE ----------------
+    if choice == "2":
+
+        target = input(f"\n{YELLOW}Enter phone number (+country code) > {WHITE}").strip()
+
+        print(f"\n🔎 Researching: '{RED}{target}{WHITE}' {YELLOW}...\n")
+
+        try:
+            from modules.phone.lookup import lookup
+
+            result = await lookup(target)
 
             if isinstance(result, tuple):
                 found, data = result
@@ -83,28 +129,15 @@ async def parser():
                 found, data = result, None
 
             if found:
-                print(f"{name} - found")
+                print("phone - found")
                 if data:
                     print(f"   └── {data}")
             else:
-                print(f"{name} - not found")
+                print("phone - not found")
 
         except:
-            print(f"{name} - error")
+            print("phone - error")
 
-    try:
-        imgur(target)
-    except:
-        pass
+        return
 
-    try:
-        pornhub(target)
-    except:
-        pass
-
-    print(f"\n{PINK}📧 Email generation{WHITE}\n")
-
-    try:
-        Email_Gen(target).printer()
-    except:
-        print(f"{RED}Email gen error{WHITE}")
+    print(f"{RED}Invalid option{WHITE}")
