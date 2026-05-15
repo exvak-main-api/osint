@@ -1,3 +1,6 @@
+from modules.domain.anomaly import detect_anomalies
+
+
 def correlate(domain, whois_data, dns_data, ip_data):
     score = 0
     signals = []
@@ -6,9 +9,6 @@ def correlate(domain, whois_data, dns_data, ip_data):
         nonlocal score
         score += points
         signals.append(msg)
-
-    def has(val):
-        return bool(val)
 
     age = whois_data.get("age_days")
     if isinstance(age, int):
@@ -54,26 +54,28 @@ def correlate(domain, whois_data, dns_data, ip_data):
 
     org = (ip_data.get("org") or "").lower()
 
-    infra = {
+    infra_map = {
         "cloudflare": "Cloudflare detected",
-        "amazon": "AWS detected",
         "aws": "AWS detected",
+        "amazon": "AWS detected",
         "google": "Google Cloud detected",
         "microsoft": "Azure detected",
+        "azure": "Azure detected",
         "digitalocean": "DigitalOcean detected",
         "ovh": "OVH detected"
     }
 
-    for k, v in infra.items():
+    for k, v in infra_map.items():
         if k in org:
             signals.append(v)
 
     ip = ip_data.get("ip")
     if ip:
         signals.append(f"Resolved IP: {ip}")
-
-    if not has(ip):
+    else:
         add(10, "No IP resolution")
+
+    anomaly = detect_anomalies(domain, whois_data, dns_data, ip_data)
 
     score = max(0, min(score, 100))
 
@@ -87,5 +89,6 @@ def correlate(domain, whois_data, dns_data, ip_data):
     return {
         "risk_score": score,
         "risk_level": level,
-        "signals": signals
+        "signals": signals,
+        "anomaly": anomaly
     }
