@@ -57,16 +57,34 @@ async def parser():
     print(f"\n{GREEN}🎭 Account search{YELLOW}...\n")
 
     modules = [
-        adobe, bandlab, chess, duolingo, flickr,
-        github, gravatar, instagram, pinterest,
-        protonmail, spotify, strava, twitter
+        ("adobe", adobe),
+        ("bandlab", bandlab),
+        ("chess", chess),
+        ("duolingo", duolingo),
+        ("flickr", flickr),
+        ("github", github),
+        ("gravatar", gravatar),
+        ("instagram", instagram),
+        ("pinterest", pinterest),
+        ("protonmail", protonmail),
+        ("spotify", spotify),
+        ("strava", strava),
+        ("twitter", twitter)
     ]
 
-    for m in modules:
+    for name, func in modules:
         try:
-            await m(target)
+            result = await func(target)
+
+            if result is True:
+                print(f"{GREEN}{name} - found{WHITE}")
+            elif result is False:
+                print(f"{RED}{name} - not found{WHITE}")
+            else:
+                print(f"{YELLOW}{name} - done{WHITE}")
+
         except:
-            print(f"{RED}{m.__name__} failed{WHITE}")
+            print(f"{RED}{name} - error{WHITE}")
 
     try:
         imgur(target)
