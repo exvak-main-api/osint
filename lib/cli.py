@@ -1,4 +1,5 @@
 import re
+import asyncio
 from lib.colors import *
 from lib.update import Version_Checker
 from lib.emails_gen import Email_Gen
@@ -72,18 +73,18 @@ async def parser():
         ("twitter", twitter)
     ]
 
-for name, func in modules:
-    try:
-        result = await func(target)
+    for name, func in modules:
+        try:
+            result = await func(target)
 
-        if result is True:
-            print(f"{name} - found")
-        else:
-            print(f"{name} - not found")
+            if result is True:
+                print(f"{name} - found")
+            else:
+                print(f"{name} - not found")
 
-    except:
-        print(f"{name} - error")
-        
+        except:
+            print(f"{name} - error")
+
     try:
         imgur(target)
     except:
